@@ -149,3 +149,30 @@ begin
     GetUsersWithFlightBookings('26-MAY-2023','28-MAY-2023');
 end;
 /
+
+
+//Trigger :
+
+-- Create a trigger function to update the number of available seats in the Flights table when a new booking is made:CREATE OR REPLACE FUNCTION update_available_seats()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE Flights
+  SET available_seats = available_seats - NEW.num_of_passengers
+  WHERE flight_id = NEW.flight_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Create a trigger to execute the update_available_seats() function after each insertion into the Bookings table:
+CREATE TRIGGER after_insert_booking
+AFTER INSERT ON Bookings
+FOR EACH ROW
+EXECUTE FUNCTION update_available_seats();
+
+
+-- Create a trigger to execute the update_booking_price() function after each insertion into the Bookings table:
+CREATE TRIGGER after_insert_booking_price
+AFTER INSERT ON Bookings
+FOR EACH ROW
+EXECUTE FUNCTION update_booking_price();
